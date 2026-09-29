@@ -11,7 +11,7 @@ class ApiResponse<T> {
 }
 
 class ApiClient {
-  static const String baseUrl = 'http://localhost:8080/api/v1';
+  static const String baseUrl = 'https://himadri-setu.onrender.com/api/v1';
   static String? _authToken;
 
   static void setAuthToken(String token) {

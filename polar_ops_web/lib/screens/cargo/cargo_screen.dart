@@ -59,7 +59,7 @@ class _CargoScreenState extends State<CargoScreen> {
       try {
         var request = http.MultipartRequest(
           'POST',
-          Uri.parse('http://localhost:8080/api/v1/cargo/intelligence/inspect'),
+          Uri.parse('https://himadri-setu.onrender.com/api/v1/cargo/intelligence/inspect'),
         );
 
         if (AuthService.currentToken != null) {
