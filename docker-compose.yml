@@ -1,0 +1,64 @@
+services:
+  backend:
+    build:
+      context: ./polar-ops-backend
+      dockerfile: Dockerfile
+    container_name: himadri-setu-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - JWT_SECRET=himadri-setu-secret-key-2026-very-secure
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/polarops
+      - SPRING_DATASOURCE_USERNAME=polarops
+      - SPRING_DATASOURCE_PASSWORD=polarops_secret
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - himadri-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--tries=1", "--spider", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+  
+  flutter-web:
+    build:
+      context: ./polar_ops_web
+      dockerfile: Dockerfile
+    container_name: himadri-setu-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - himadri-network
+
+  db:
+    image: postgres:15-alpine
+    container_name: himadri-setu-db
+    environment:
+      POSTGRES_DB: polarops
+      POSTGRES_USER: polarops
+      POSTGRES_PASSWORD: polarops_secret
+    ports:
+      - "5432:5432"
+    networks:
+      - himadri-network
+    volumes:
+      - polarops-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U polarops"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  himadri-network:
+    driver: bridge
+
+volumes:
+  polarops-data:
+

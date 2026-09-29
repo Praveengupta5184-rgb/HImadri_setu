@@ -1,0 +1,2 @@
+package in.gov.moes.ncpor.polarops.repository; import in.gov.moes.ncpor.polarops.model.MissionMember; import org.springframework.data.jpa.repository.JpaRepository; import java.util.*;
+public interface MissionMemberRepository extends JpaRepository<MissionMember,Long>{ List<MissionMember> findByMissionIdAndMembershipStatus(Long missionId,String status); boolean existsByMissionIdAndPersonnelIdAndMembershipStatus(Long missionId,Long personnelId,String status); Optional<MissionMember> findByMissionIdAndPersonnelId(Long missionId,Long personnelId); }

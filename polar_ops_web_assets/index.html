@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>POLAR-OPS - 3D Digital Twin</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #121212; color: white; font-family: sans-serif; }
+        #3d-container { width: 100vw; height: 100vh; }
+        #room-popup {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #333;
+            padding: 20px;
+            border-radius: 8px;
+            min-width: 250px;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+        }
+        #room-popup h2 { margin-top: 0; color: #4fc3f7; }
+        button {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="3d-container"></div>
+    <div id="room-popup">
+        <h2 id="room-name"></h2>
+        <p><strong>Inventory:</strong> <span id="room-inventory"></span></p>
+        <p><strong>Assets:</strong> <span id="room-assets"></span></p>
+        <p><strong>Personnel:</strong> <span id="room-personnel"></span></p>
+        <button onclick="closePopup()">Close</button>
+    </div>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  risk_score_service:
+    build: ./risk_score_service
+    ports:
+      - "8001:80"
+    restart: unless-stopped
+
+  inventory_forecast_service:
+    build: ./inventory_forecast_service
+    ports:
+      - "8002:80"
+    restart: unless-stopped
+
+  damage_detection_service:
+    build: ./damage_detection_service
+    ports:
+      - "8003:80"
+    restart: unless-stopped

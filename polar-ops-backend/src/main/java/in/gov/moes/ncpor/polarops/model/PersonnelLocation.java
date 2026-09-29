@@ -1,0 +1,4 @@
+package in.gov.moes.ncpor.polarops.model;
+import jakarta.persistence.*; import lombok.*; import java.time.*;
+@Data @Builder @NoArgsConstructor @AllArgsConstructor @Entity @Table(name="personnel_locations", indexes={@Index(name="idx_location_personnel_time",columnList="personnel_id,recordedAt"),@Index(name="idx_location_mission_time",columnList="mission_id,recordedAt")})
+public class PersonnelLocation { @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id; @ManyToOne(optional=false) @JoinColumn(name="personnel_id") private Personnel personnel; @ManyToOne(optional=false) @JoinColumn(name="mission_id") private Mission mission; private Double latitude; private Double longitude; private Double accuracyMeters; private LocalDateTime recordedAt; private String source; private String movementStatus; private String deviceId; private Integer batteryPercent; }

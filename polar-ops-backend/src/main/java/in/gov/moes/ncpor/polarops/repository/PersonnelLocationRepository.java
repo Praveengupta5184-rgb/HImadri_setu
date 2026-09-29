@@ -1,0 +1,2 @@
+package in.gov.moes.ncpor.polarops.repository; import in.gov.moes.ncpor.polarops.model.PersonnelLocation; import org.springframework.data.jpa.repository.JpaRepository; import java.util.*;
+public interface PersonnelLocationRepository extends JpaRepository<PersonnelLocation,Long>{ Optional<PersonnelLocation> findFirstByPersonnelIdAndMissionIdOrderByRecordedAtDesc(Long personnelId,Long missionId); List<PersonnelLocation> findByMissionIdOrderByRecordedAtDesc(Long missionId); }

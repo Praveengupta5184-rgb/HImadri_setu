@@ -1,0 +1,37 @@
+name: polar_ops_app
+description: POLAR-OPS Mobile App
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.1.1
+  dio: ^5.4.0
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  mobile_scanner: ^3.5.2
+  google_mlkit_text_recognition: ^0.11.0
+  flutter_map: ^6.0.1
+  geolocator: ^10.1.0
+  speech_to_text: ^6.5.1
+  firebase_messaging: ^14.7.10
+  firebase_core: ^2.24.2
+  path_provider: ^2.1.2
+  permission_handler: ^11.2.0
+  shared_preferences: ^2.2.2
+  pdf: ^3.10.7
+  excel: ^3.0.1
+  printing: ^5.11.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.4.7
+  hive_generator: ^2.0.1
+
+flutter:
+  uses-material-design: true

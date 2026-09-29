@@ -1,0 +1,4 @@
+package in.gov.moes.ncpor.polarops.model;
+import jakarta.persistence.*; import lombok.*; import java.time.*;
+@Data @Builder @NoArgsConstructor @AllArgsConstructor @Entity @Table(name="team_targets")
+public class TeamTarget { @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id; @ManyToOne(optional=false) @JoinColumn(name="mission_id") private Mission mission; @ManyToOne(optional=false) @JoinColumn(name="team_id") private MissionTeam team; private String title; @Column(length=2000) private String description; private Double targetValue; private Double completedValue; private String unit; private String status; private LocalDate deadline; private String priority; private LocalDateTime createdAt; private LocalDateTime updatedAt; @Transient public Double getProgressPercent(){ return targetValue == null || targetValue <= 0 ? null : Math.min(100d, (completedValue == null ? 0d : completedValue) * 100d / targetValue); } }

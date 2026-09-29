@@ -1,0 +1,4 @@
+package in.gov.moes.ncpor.polarops.model;
+public enum Role {
+    ADMIN, MISSION_OFFICER, LOGISTICS_OFFICER, STATION_OFFICER, FIELD_OPERATOR, ASSET_OFFICER, MEDICAL_OFFICER, PERSONNEL
+}

@@ -1,0 +1,35 @@
+name: polar_ops_web
+description: POLAR-OPS Web Dashboard
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.1.1
+  fl_chart: ^0.65.0
+  http: ^1.2.0
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.0
+  syncfusion_flutter_charts: ^23.1.40
+  pdf: ^3.10.7
+  excel: 4.0.6
+  printing: ^5.11.1
+  data_table_2: ^2.3.12
+  flutter_svg: ^2.0.9
+  universal_html: ^2.2.4
+  web_socket_channel: ^2.4.0
+  file_picker: ^8.0.7
+  shared_preferences: ^2.5.5
+  connectivity_plus: ^7.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.4.7
+
+flutter:
+  uses-material-design: true
