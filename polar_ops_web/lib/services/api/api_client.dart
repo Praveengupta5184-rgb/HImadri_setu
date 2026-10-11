@@ -17,6 +17,12 @@ class ApiClient {
 
     try {
       final baseUri = Uri.base;
+      if (baseUri.host.contains('onrender.com')) {
+        return 'https://himadri-setu.onrender.com/api/v1';
+      }
+      if (baseUri.host == 'localhost' || baseUri.host == '127.0.0.1') {
+        return 'http://localhost:8080/api/v1';
+      }
       if (baseUri.scheme == 'http' || baseUri.scheme == 'https') {
         return '${baseUri.scheme}://${baseUri.host}:8080/api/v1';
       }
