@@ -3,6 +3,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/components/state_widgets.dart';
 import '../../widgets/components/section_header.dart';
 import '../../services/api/mission_service.dart';
+import '../../services/auth/auth_service.dart';
 import 'mission_details_screen.dart';
 
 class MissionListScreen extends StatefulWidget {
@@ -135,30 +136,103 @@ class _MissionListScreenState extends State<MissionListScreen> {
       return StateWidgets.errorState(message: _error!, onRetry: _fetchMissions);
     }
 
-    return Padding(
-      padding: const EdgeInsets.all(AppTheme.spacingLg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SectionHeader(
-            title: 'Missions',
-            trailing: IconButton(
-              icon: const Icon(Icons.refresh, color: AppTheme.accentCyan),
-              onPressed: _fetchMissions,
-            ),
-          ),
-          const SizedBox(height: AppTheme.spacingLg),
-          if (_missions.isEmpty)
-            Expanded(child: StateWidgets.emptyState(message: 'No missions found'))
-          else
-            Expanded(
-              child: ListView.builder(
-                itemCount: _missions.length,
-                itemBuilder: (context, index) {
-                  return _buildMissionCard(_missions[index]);
-                },
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Padding(
+        padding: const EdgeInsets.all(AppTheme.spacingLg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SectionHeader(
+              title: 'Missions',
+              trailing: IconButton(
+                icon: const Icon(Icons.refresh, color: AppTheme.accentCyan),
+                onPressed: _fetchMissions,
               ),
             ),
+            const SizedBox(height: AppTheme.spacingLg),
+            if (_missions.isEmpty)
+              Expanded(child: StateWidgets.emptyState(message: 'No missions found'))
+            else
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _missions.length,
+                  itemBuilder: (context, index) {
+                    return _buildMissionCard(_missions[index]);
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+      floatingActionButton: AuthService.hasRole(['ADMIN', 'MISSION_OFFICER']) 
+          ? FloatingActionButton(
+              onPressed: () => _showCreateMissionDialog(context),
+              backgroundColor: AppTheme.accentCyan,
+              child: const Icon(Icons.add, color: AppTheme.primaryNavy),
+            )
+          : null,
+    );
+  }
+
+  void _showCreateMissionDialog(BuildContext context) {
+    final titleController = TextEditingController();
+    final objectiveController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.secondaryNavy,
+        title: const Text('Create New Mission', style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleController,
+              decoration: const InputDecoration(
+                labelText: 'Mission Title/Name',
+                labelStyle: TextStyle(color: AppTheme.textMuted),
+              ),
+              style: const TextStyle(color: Colors.white),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: objectiveController,
+              decoration: const InputDecoration(
+                labelText: 'Mission Objective',
+                labelStyle: TextStyle(color: AppTheme.textMuted),
+              ),
+              style: const TextStyle(color: Colors.white),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (titleController.text.trim().isEmpty) return;
+              final data = {
+                'missionName': titleController.text.trim(),
+                'objective': objectiveController.text.trim(),
+                // In a real app, expedition selection would be here. Hardcoding ID 1 for now.
+                'expedition': {'id': 1} 
+              };
+              Navigator.pop(ctx);
+              final res = await MissionService.createMission(data);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(res.success ? 'Mission Created' : (res.error ?? 'Error creating mission')),
+                  backgroundColor: res.success ? AppTheme.statusHealthy : AppTheme.statusCritical,
+                ));
+                if (res.success) _fetchMissions();
+              }
+            },
+            child: const Text('CREATE', style: TextStyle(color: AppTheme.accentCyan)),
+          ),
         ],
       ),
     );

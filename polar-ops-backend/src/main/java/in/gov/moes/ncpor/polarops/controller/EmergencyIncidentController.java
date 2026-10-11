@@ -20,6 +20,11 @@ public class EmergencyIncidentController {
         return ResponseEntity.ok(emergencyService.getAll());
     }
 
+    @GetMapping("/dashboard")
+    public ResponseEntity<Map<String, Object>> getDashboardMetrics() {
+        return ResponseEntity.ok(emergencyService.getDashboardMetrics());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<EmergencyIncident> getById(@PathVariable Long id) {
         EmergencyIncident incident = emergencyService.getById(id);
@@ -28,13 +33,17 @@ public class EmergencyIncidentController {
 
     @PostMapping
     public ResponseEntity<EmergencyIncident> create(@RequestBody EmergencyIncident incident) {
+        String username = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        if (incident.getReportedBy() == null || "CurrentUser".equals(incident.getReportedBy())) {
+            incident.setReportedBy(username);
+        }
         return ResponseEntity.ok(emergencyService.createIncident(incident));
     }
 
     @PutMapping("/{id}/status")
     public ResponseEntity<EmergencyIncident> updateStatus(@PathVariable Long id, @RequestBody Map<String, String> payload) {
         String status = payload.get("status");
-        String performedBy = payload.get("performedBy");
+        String performedBy = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
         String notes = payload.get("notes");
         
         EmergencyIncident updated = emergencyService.updateStatus(id, status, performedBy, notes);

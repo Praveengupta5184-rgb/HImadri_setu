@@ -27,6 +27,7 @@ public class UserService {
             userRepository.save(User.builder().email("logistics@polarops.gov.in").password(passwordEncoder.encode("password")).role(Role.LOGISTICS_OFFICER).status(UserStatus.ACTIVE).name("Logistics Officer").build());
             userRepository.save(User.builder().email("field@polarops.gov.in").password(passwordEncoder.encode("password")).role(Role.FIELD_OPERATOR).status(UserStatus.ACTIVE).name("Field Operator").build());
             userRepository.save(User.builder().email("station@polarops.gov.in").password(passwordEncoder.encode("password")).role(Role.STATION_OFFICER).status(UserStatus.ACTIVE).name("Station Commander").build());
+            userRepository.save(User.builder().email("mission@polarops.gov.in").password(passwordEncoder.encode("password")).role(Role.MISSION_OFFICER).status(UserStatus.ACTIVE).name("Mission Officer").build());
         } else {
             List<User> all = userRepository.findAll();
             boolean needsMigration = all.stream().anyMatch(u -> !u.getPassword().startsWith("$2"));
@@ -48,6 +49,15 @@ public class UserService {
                 }
                 userRepository.saveAll(all);
             }
+        }
+        if (userRepository.findByEmail("judge.demo@polarops.gov.in").isEmpty()) {
+            userRepository.save(User.builder()
+                .email("judge.demo@polarops.gov.in")
+                .password(passwordEncoder.encode("JudgeDemo@2026"))
+                .role(Role.MISSION_OFFICER)
+                .status(UserStatus.ACTIVE)
+                .name("SIH Judge Evaluator")
+                .build());
         }
     }
 

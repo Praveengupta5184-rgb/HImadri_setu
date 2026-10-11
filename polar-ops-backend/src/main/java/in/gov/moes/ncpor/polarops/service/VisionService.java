@@ -35,6 +35,7 @@ public class VisionService {
     private final CargoRepository cargoRepository;
     private final CargoInspectionRepository cargoInspectionRepository;
     private final RiskEngineService riskEngineService;
+    private final in.gov.moes.ncpor.polarops.client.DamageDetectionClient damageDetectionClient;
 
     @Value("${file.upload-dir:/app/uploads}")
     private String uploadDir;
@@ -77,13 +78,32 @@ public class VisionService {
             }
         }
 
-        // 3. Computer Vision Damage Detection (Not currently available offline)
-        // Since no real model is connected, we do not fake detections.
-        boolean damageDetected = false;
-        String notes = "Image parsed for Cargo ID. Damage detection unavailable in offline field mode.";
+        // 3. Computer Vision Damage Detection
+        in.gov.moes.ncpor.polarops.dto.DamageDetectionResponse damageResponse = damageDetectionClient.detectDamage(imageUrl);
+        Boolean damageDetected = null;
+        String notes = "Image parsed for Cargo ID.";
+        String damageDetectionModel = null;
+        String damageType = null;
+        String recommendation = null;
+        Double damageConfidence = 1.0;
+
+        if (damageResponse != null) {
+            damageDetected = damageResponse.getIsDamaged();
+            damageType = damageResponse.getDamageType();
+            recommendation = damageResponse.getRecommendation();
+            damageConfidence = damageResponse.getConfidence();
+            damageDetectionModel = damageResponse.getAiMode();
+            if (Boolean.TRUE.equals(damageDetected)) {
+                notes += " Damage detected: " + damageType;
+            } else {
+                notes += " No damage detected.";
+            }
+        } else {
+            notes += " Damage detection unavailable.";
+        }
         
         // 4. Update Risk if applicable
-        if (cargoPackage != null) {
+        if (cargoPackage != null && Boolean.TRUE.equals(damageDetected)) {
             riskEngineService.evaluateCargoRisk(cargoPackage, damageDetected, cargoPackage.getDestination());
         }
 
@@ -92,14 +112,17 @@ public class VisionService {
                 .cargoPackage(cargoPackage)
                 .inspectorName("AUTO-CV-SYSTEM")
                 .notes(notes)
-                .passed(!damageDetected)
+                .passed(!Boolean.TRUE.equals(damageDetected))
                 .inspectionDate(LocalDateTime.now())
                 .imageUrl(imageUrl)
-                .modelName("ZXING_BARCODE_SCANNER")
+                .barcodeModel("ZXING_BARCODE_SCANNER")
+                .damageDetectionModel(damageDetectionModel)
                 .modelVersion("3.5.3")
-                .confidence(1.0)
+                .confidence(damageConfidence)
                 .detectedObjects("[]")
                 .damageDetected(damageDetected)
+                .damageType(damageType)
+                .recommendation(recommendation)
                 .build();
 
         return cargoInspectionRepository.save(inspection);

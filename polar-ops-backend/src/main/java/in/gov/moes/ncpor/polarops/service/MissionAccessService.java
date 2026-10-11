@@ -5,4 +5,5 @@ import in.gov.moes.ncpor.polarops.model.*; import in.gov.moes.ncpor.polarops.rep
  public boolean isOfficer(Authentication a){ return a.getAuthorities().stream().anyMatch(x -> x.getAuthority().matches("ROLE_(ADMIN|MISSION_OFFICER|STATION_OFFICER|LOGISTICS_OFFICER)")); }
  public boolean canAccess(Mission m, Authentication a){ if(isOfficer(a)) return true; return users.findByEmail(a.getName()).map(u -> u.getPersonnel()!=null && members.existsByMissionIdAndPersonnelIdAndMembershipStatus(m.getId(),u.getPersonnel().getId(),"ACTIVE")).orElse(false); }
  public boolean canSendLocation(Long personnelId, Mission m, Authentication a){ if(isOfficer(a)) return true; return users.findByEmail(a.getName()).map(u -> u.getPersonnel()!=null && u.getPersonnel().getId().equals(personnelId) && canAccess(m,a)).orElse(false); }
+ public boolean canAccessTeam(MissionTeam t, Authentication a) { if(isOfficer(a)) return true; return users.findByEmail(a.getName()).map(u -> u.getPersonnel()!=null && members.existsByTeamIdAndPersonnelIdAndMembershipStatus(t.getId(), u.getPersonnel().getId(), "ACTIVE")).orElse(false); }
 }

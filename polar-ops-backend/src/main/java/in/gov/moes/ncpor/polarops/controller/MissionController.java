@@ -88,6 +88,23 @@ public class MissionController {
         return ResponseEntity.ok(m);
     }
 
+    @PutMapping("/{code}/status")
+    public ResponseEntity<?> updateStatus(@PathVariable String code, @RequestBody Map<String, String> payload, Authentication a) {
+        Mission m = find(code);
+        if (!access.isOfficer(a)) {
+            return ResponseEntity.status(403).build();
+        }
+        String status = payload.get("status");
+        if (status == null || status.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Status is required"));
+        }
+        m.setStatus(status);
+        m.setUpdatedAt(LocalDateTime.now());
+        Mission saved = missions.save(m);
+        audit.logAction(a.getName(), "MISSION_STATUS_UPDATED", code + " -> " + status);
+        return ResponseEntity.ok(saved);
+    }
+
     @PostMapping("/{code}/teams")
     public ResponseEntity<?> team(@PathVariable String code, @RequestBody MissionTeam t, Authentication a) {
         Mission m = find(code);
@@ -115,6 +132,33 @@ public class MissionController {
         return access.canAccess(m, a)
                 ? ResponseEntity.ok(teams.findByMissionId(m.getId()))
                 : ResponseEntity.status(403).build();
+    }
+
+    @PutMapping("/{code}/teams/{teamId}/leader/{personnelId}")
+    public ResponseEntity<?> setTeamLeader(
+            @PathVariable String code,
+            @PathVariable Long teamId,
+            @PathVariable Long personnelId,
+            Authentication a) {
+        Mission m = find(code);
+        if (!access.isOfficer(a) || closed(m)) {
+            return ResponseEntity.status(403).build();
+        }
+        
+        ValidationResult pVal = validationService.validatePersonnelExists(personnelId);
+        if (!pVal.valid()) {
+            return ResponseEntity.status(404).body(Map.of("message", pVal.message()));
+        }
+
+        MissionTeam t = teams.findById(teamId)
+                .filter(x -> x.getMission().getId().equals(m.getId()))
+                .orElseThrow();
+                
+        Personnel p = personnel.findById(personnelId).orElseThrow();
+        t.setTeamLeader(p);
+        t.setUpdatedAt(LocalDateTime.now());
+        
+        return ResponseEntity.ok(teams.save(t));
     }
 
     @PostMapping("/{code}/teams/{teamId}/members/{personnelId}")

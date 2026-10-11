@@ -58,4 +58,24 @@ class MissionService {
     };
     return ApiClient.put('/missions/$code/assignments/$assignmentId', body);
   }
+
+  static Future<ApiResponse<dynamic>> createMission(Map<String, dynamic> missionData) async {
+    return ApiClient.post('/missions', missionData);
+  }
+
+  static Future<ApiResponse<dynamic>> updateMissionStatus(String code, String status) async {
+    return ApiClient.put('/missions/$code/status', {'status': status});
+  }
+
+  static Future<ApiResponse<dynamic>> createTeam(String code, Map<String, dynamic> teamData) async {
+    return ApiClient.post('/missions/$code/teams', teamData);
+  }
+
+  static Future<ApiResponse<dynamic>> addPersonnelToTeam(String code, int teamId, int personnelId) async {
+    return ApiClient.post('/missions/$code/teams/$teamId/members/$personnelId', {});
+  }
+
+  static Future<ApiResponse<dynamic>> assignTeamLeader(String code, int teamId, int personnelId) async {
+    return ApiClient.put('/missions/$code/teams/$teamId/leader/$personnelId', {});
+  }
 }

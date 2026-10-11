@@ -24,6 +24,9 @@ public class SecurityConfig {
     @Autowired
     private MissionClosureFilter missionClosureFilter;
     
+    @Autowired
+    private org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource;
+    
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -33,10 +36,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
-            .cors(Customizer.withDefaults())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/v1/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/api/health", "/").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/cargo/*/scan").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/auth/users/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/v1/auth/users/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/v1/expeditions/**").hasAnyRole("ADMIN", "MISSION_OFFICER")
@@ -61,7 +65,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/assets/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/assets/**").hasAnyRole("ADMIN", "ASSET_OFFICER", "MISSION_OFFICER", "LOGISTICS_OFFICER", "STATION_OFFICER", "FIELD_OPERATOR")
                 .requestMatchers("/api/v1/simulation/**").hasAnyRole("ADMIN", "MISSION_OFFICER")
-                .requestMatchers("/api/v1/emergency/**").hasAnyRole("ADMIN", "MISSION_OFFICER", "STATION_OFFICER", "FIELD_OPERATOR")
+                .requestMatchers("/api/v1/emergencies/**").hasAnyRole("ADMIN", "MISSION_OFFICER", "STATION_OFFICER", "FIELD_OPERATOR")
+                .requestMatchers("/api/v1/ai/**").hasAnyRole("ADMIN", "MISSION_OFFICER", "LOGISTICS_OFFICER", "STATION_OFFICER", "FIELD_OPERATOR")
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import '../../services/api_service.dart';
 
-class SosScreen extends StatelessWidget {
+class SosScreen extends StatefulWidget {
+  @override
+  _SosScreenState createState() => _SosScreenState();
+}
+
+class _SosScreenState extends State<SosScreen> {
+  final ApiService _apiService = ApiService();
+  bool _isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -11,26 +21,28 @@ class SosScreen extends StatelessWidget {
           children: [
             GestureDetector(
               onTap: () {
-                _showConfirmDialog(context);
+                if (!_isLoading) _showConfirmDialog(context);
               },
               child: Container(
                 width: 200, height: 200,
                 decoration: BoxDecoration(
-                  color: Colors.red,
+                  color: _isLoading ? Colors.grey : Colors.red,
                   shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: Colors.redAccent, blurRadius: 30, spreadRadius: 10)]
+                  boxShadow: _isLoading ? [] : [BoxShadow(color: Colors.redAccent, blurRadius: 30, spreadRadius: 10)]
                 ),
-                child: const Center(
-                  child: Text('SOS', style: TextStyle(color: Colors.white, fontSize: 48, fontWeight: FontWeight.bold)),
+                child: Center(
+                  child: _isLoading 
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text('SOS', style: TextStyle(color: Colors.white, fontSize: 48, fontWeight: FontWeight.bold)),
                 ),
               ),
             ),
             const SizedBox(height: 48),
             ElevatedButton.icon(
               icon: const Icon(Icons.mic),
-              label: const Text('Voice SOS'),
+              label: const Text('Voice SOS - Prototype'),
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Listening... Say "Fire in Lab 2"')));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Listening... (Voice SOS is a prototype)')));
               },
             )
           ],
@@ -51,12 +63,55 @@ class SosScreen extends StatelessWidget {
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Emergency incident created. Response team dispatched.')));
+              _triggerSos();
             },
             child: const Text('CONFIRM SOS'),
           )
         ],
       )
     );
+  }
+
+  Future<void> _triggerSos() async {
+    setState(() => _isLoading = true);
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Location services are disabled.');
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Location permissions are denied');
+        }
+      }
+      
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Location permissions are permanently denied, we cannot request permissions.');
+      }
+
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+
+      final response = await _apiService.createEmergency({
+        "type": "GENERAL_EMERGENCY",
+        "description": "SOS triggered from Android App",
+        "severity": "CRITICAL",
+        "reportedBy": "FIELD_OPERATOR_1", // TODO: Get from auth
+        "missionId": 1, // TODO: Get from context
+        "latitude": position.latitude,
+        "longitude": position.longitude
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Emergency ${response['id']} created. Response team dispatched.')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to trigger SOS: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 }

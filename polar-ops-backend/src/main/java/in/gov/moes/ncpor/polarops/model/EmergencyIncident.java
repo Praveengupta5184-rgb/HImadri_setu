@@ -26,6 +26,29 @@ public class EmergencyIncident {
     @Column(columnDefinition = "TEXT")
     private String resolution;
     
+    @Column(unique = true)
+    private String emergencyId;
+    
+    private Double latitude;
+    private Double longitude;
+    private Double locationAccuracy;
+    private String locationSource;
+    private Integer peopleAffected;
+    
+    @Column(columnDefinition = "TEXT")
+    private String requiredAssistance;
+    
+    @ManyToOne @JoinColumn(name = "team_id")
+    private MissionTeam team;
+    
+    @ManyToOne @JoinColumn(name = "station_id")
+    private Station station;
+    
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime resolvedAt;
+    private String resolvedBy;
+    
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "incident_id")
     private java.util.List<IncidentAudit> auditHistory = new java.util.ArrayList<>();

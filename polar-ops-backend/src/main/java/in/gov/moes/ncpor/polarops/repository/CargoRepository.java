@@ -8,5 +8,5 @@ import java.util.List;
 @Repository
 public interface CargoRepository extends JpaRepository<CargoPackage, Long> {
     java.util.Optional<CargoPackage> findByCargoId(String cargoId);
-    long countByCurrentStatus(String currentStatus);
+    long countByCurrentStatus(in.gov.moes.ncpor.polarops.model.cargo.CargoStatus currentStatus);
 }

@@ -16,6 +16,7 @@ class _MapScreenState extends State<MapScreen> {
   bool _isLoading = true;
   String? _error;
   List<dynamic> _stations = [];
+  List<dynamic> _trackers = [];
 
   @override
   void initState() {
@@ -29,11 +30,15 @@ class _MapScreenState extends State<MapScreen> {
       _error = null;
     });
     final response = await ApiClient.get<List<dynamic>>('/stations');
+    final trackersResponse = await ApiClient.get<List<dynamic>>('/trackers/active');
 
     if (mounted) {
       if (response.success && response.data != null) {
         setState(() {
           _stations = response.data!;
+          if (trackersResponse.success && trackersResponse.data != null) {
+            _trackers = trackersResponse.data!;
+          }
           _isLoading = false;
         });
       } else {
@@ -76,6 +81,34 @@ class _MapScreenState extends State<MapScreen> {
             onPressed: () => Navigator.pop(context),
             child: const Text('Close',
                 style: TextStyle(color: AppTheme.accentCyan)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showTrackerDetails(Map<String, dynamic> tracker) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.secondaryNavy,
+        title: const Text('Cargo Tracker', style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Device ID: ${tracker['deviceId']}', style: const TextStyle(color: Colors.white)),
+            Text('Cargo ID: ${tracker['cargoId']}', style: const TextStyle(color: Colors.white)),
+            Text('Status: ${tracker['status']}', style: const TextStyle(color: AppTheme.statusWarning)),
+            Text('Latitude: ${tracker['latitude']}', style: const TextStyle(color: AppTheme.textMuted)),
+            Text('Longitude: ${tracker['longitude']}', style: const TextStyle(color: AppTheme.textMuted)),
+            Text('Last Seen: ${tracker['lastSeen']}', style: const TextStyle(color: AppTheme.textMuted)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close', style: TextStyle(color: AppTheme.accentCyan)),
           ),
         ],
       ),
@@ -127,7 +160,26 @@ class _MapScreenState extends State<MapScreen> {
                     );
                   })
                   .whereType<Marker>()
-                  .toList(),
+                  .toList()
+                ..addAll(_trackers.map((t) {
+                  final lat = t['latitude'] as double?;
+                  final lng = t['longitude'] as double?;
+                  if (lat == null || lng == null) return null;
+
+                  return Marker(
+                    point: LatLng(lat, lng),
+                    width: 40,
+                    height: 40,
+                    child: GestureDetector(
+                      onTap: () => _showTrackerDetails(t),
+                      child: const Icon(
+                        Icons.local_shipping,
+                        color: AppTheme.statusWarning,
+                        size: 32,
+                      ),
+                    ),
+                  );
+                }).whereType<Marker>()),
             ),
           ],
         ),

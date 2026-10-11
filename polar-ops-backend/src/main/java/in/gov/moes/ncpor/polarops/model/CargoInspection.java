@@ -22,10 +22,13 @@ public class CargoInspection {
     
     // Audit & CV Fields
     private String imageUrl;
-    private String modelName;
+    private String barcodeModel;
+    private String damageDetectionModel;
     private String modelVersion;
     private Double confidence;
     private String detectedObjects; // JSON string
     private Boolean damageDetected;
+    private String damageType;
+    private String recommendation;
     private String riskContribution;
 }

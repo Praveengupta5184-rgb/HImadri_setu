@@ -17,4 +17,7 @@ public class Notification {
     private String severity;
     private LocalDateTime createdAt;
     private Boolean isRead;
+    
+    private Long userId;
+    private String referenceId;
 }

@@ -68,27 +68,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
           decoration: BoxDecoration(
             color: AppTheme.secondaryNavy,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.accentCyan.withValues(alpha: 0.3)),
+            border:
+                Border.all(color: AppTheme.accentCyan.withValues(alpha: 0.3)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.person_add, size: 48, color: AppTheme.accentCyan),
+              const Icon(Icons.person_add,
+                  size: 48, color: AppTheme.accentCyan),
               const SizedBox(height: AppTheme.spacingMd),
               const Text('POLAR-OPS Registration',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white)),
               const Text('New Personnel Registration',
                   style: TextStyle(color: AppTheme.textMuted)),
               const SizedBox(height: AppTheme.spacingXl),
-
               TextField(
                 controller: _nameController,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   labelText: 'Full Name',
                   labelStyle: const TextStyle(color: AppTheme.textMuted),
-                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: AppTheme.textMuted.withValues(alpha: 0.3))),
-                  focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: AppTheme.accentCyan)),
+                  enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: AppTheme.textMuted.withValues(alpha: 0.3))),
+                  focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: AppTheme.accentCyan)),
                 ),
               ),
               const SizedBox(height: AppTheme.spacingMd),
@@ -98,8 +105,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 decoration: InputDecoration(
                   labelText: 'Email',
                   labelStyle: const TextStyle(color: AppTheme.textMuted),
-                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: AppTheme.textMuted.withValues(alpha: 0.3))),
-                  focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: AppTheme.accentCyan)),
+                  enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: AppTheme.textMuted.withValues(alpha: 0.3))),
+                  focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: AppTheme.accentCyan)),
                 ),
               ),
               const SizedBox(height: AppTheme.spacingMd),
@@ -110,27 +120,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 decoration: InputDecoration(
                   labelText: 'Password (min 6 characters)',
                   labelStyle: const TextStyle(color: AppTheme.textMuted),
-                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: AppTheme.textMuted.withValues(alpha: 0.3))),
-                  focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: AppTheme.accentCyan)),
+                  enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: AppTheme.textMuted.withValues(alpha: 0.3))),
+                  focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: AppTheme.accentCyan)),
                 ),
               ),
               const SizedBox(height: AppTheme.spacingLg),
-
               if (_successMessage.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(bottom: AppTheme.spacingMd),
                   child: Text(_successMessage,
-                      style: TextStyle(color: AppTheme.statusHealthy, fontSize: 13),
+                      style: TextStyle(
+                          color: AppTheme.statusHealthy, fontSize: 13),
                       textAlign: TextAlign.center),
                 ),
               if (_errorMessage.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(bottom: AppTheme.spacingMd),
                   child: Text(_errorMessage,
-                      style: TextStyle(color: AppTheme.statusCritical, fontSize: 13),
+                      style: TextStyle(
+                          color: AppTheme.statusCritical, fontSize: 13),
                       textAlign: TextAlign.center),
                 ),
-
               SizedBox(
                 width: double.infinity,
                 height: 48,
@@ -141,8 +154,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     foregroundColor: AppTheme.primaryNavy,
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: AppTheme.primaryNavy)
-                      : const Text('REGISTER', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ? const CircularProgressIndicator(
+                          color: AppTheme.primaryNavy)
+                      : const Text('REGISTER',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
               const SizedBox(height: AppTheme.spacingLg),

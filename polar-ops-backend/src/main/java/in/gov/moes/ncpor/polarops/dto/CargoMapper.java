@@ -14,4 +14,9 @@ public interface CargoMapper {
     CargoPackage toEntity(CargoDto cargoDto);
     
     List<CargoDto> toDtoList(List<CargoPackage> cargoPackages);
+    
+    @org.mapstruct.Mapping(source = "cargo.id", target = "cargoId")
+    CargoTrackingEventDto toTrackingDto(in.gov.moes.ncpor.polarops.model.cargo.CargoTrackingEvent event);
+    
+    List<CargoTrackingEventDto> toTrackingDtoList(List<in.gov.moes.ncpor.polarops.model.cargo.CargoTrackingEvent> events);
 }

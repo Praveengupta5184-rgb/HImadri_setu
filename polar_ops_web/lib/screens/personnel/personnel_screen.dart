@@ -80,7 +80,8 @@ class _PersonnelScreenState extends State<PersonnelScreen> {
                               'MOBILIZING',
                               'IN_TRANSIT',
                               'AT_STATION',
-                              'RETURNING'
+                              'RETURNING',
+                              'DEPLOYED'
                             ]
                                 .map((v) =>
                                     DropdownMenuItem(value: v, child: Text(v)))

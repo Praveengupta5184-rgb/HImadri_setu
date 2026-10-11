@@ -10,26 +10,39 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import lombok.RequiredArgsConstructor;
 import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/inventory")
 @RequiredArgsConstructor
 public class InventoryController {
     private final InventoryService inventoryService;
     private final ForecastingService forecastingService;
+
     @GetMapping
     public ResponseEntity<List<InventoryItem>> getAll() {
         return ResponseEntity.ok(inventoryService.getAll());
     }
+
     @GetMapping("/{id}")
     public ResponseEntity<InventoryItem> getById(@PathVariable Long id) {
         InventoryItem item = inventoryService.getById(id);
         return item != null ? ResponseEntity.ok(item) : ResponseEntity.notFound().build();
     }
+
     @PostMapping("/{id}/forecast")
-    public ResponseEntity<ForecastResponse> getForecast(@PathVariable Long id) {
+    public ResponseEntity<ForecastResponse> getForecast(@PathVariable Long id, @RequestBody(required = false) Map<String, Object> params) {
         InventoryItem item = inventoryService.getById(id);
-        if(item != null) return ResponseEntity.ok(forecastingService.forecastInventory(item));
-        return ResponseEntity.notFound().build();
+        if (item == null) return ResponseEntity.notFound().build();
+        
+        int personnelCount = params != null && params.get("personnelCount") != null ? 
+            (Integer) params.get("personnelCount") : 25;
+        String season = params != null && params.get("season") != null ? 
+            (String) params.get("season") : "SUMMER";
+        String missionContext = params != null && params.get("missionContext") != null ? 
+            (String) params.get("missionContext") : null;
+        
+        return ResponseEntity.ok(forecastingService.forecastInventory(item, personnelCount, season, missionContext));
     }
 
     @PostMapping
@@ -39,7 +52,7 @@ public class InventoryController {
 
     @PutMapping("/{id}")
     public ResponseEntity<InventoryItem> update(@PathVariable Long id, @RequestBody InventoryItem item) {
-        if(inventoryService.getById(id) == null) return ResponseEntity.notFound().build();
+        if (inventoryService.getById(id) == null) return ResponseEntity.notFound().build();
         item.setItemId(id);
         return ResponseEntity.ok(inventoryService.save(item));
     }
@@ -49,14 +62,21 @@ public class InventoryController {
         inventoryService.delete(id);
         return ResponseEntity.ok().build();
     }
+
     @GetMapping("/{id}/transactions")
     public ResponseEntity<List<InventoryTransaction>> transactions(@PathVariable Long id) {
-        return inventoryService.getById(id) == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(inventoryService.getTransactions(id));
+        return inventoryService.getById(id) == null ? ResponseEntity.notFound().build() 
+            : ResponseEntity.ok(inventoryService.getTransactions(id));
     }
+
     @PostMapping("/{id}/transactions")
     public ResponseEntity<?> adjust(@PathVariable Long id, @RequestBody InventoryAdjustmentRequest request, Authentication authentication) {
-        try { return ResponseEntity.ok(inventoryService.adjust(id, request, authentication.getName())); }
-        catch (IllegalArgumentException e) { return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage())); }
-        catch (IllegalStateException e) { return ResponseEntity.status(409).body(java.util.Map.of("message", e.getMessage())); }
+        try { 
+            return ResponseEntity.ok(inventoryService.adjust(id, request, authentication.getName())); 
+        } catch (IllegalArgumentException e) { 
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage())); 
+        } catch (IllegalStateException e) { 
+            return ResponseEntity.status(409).body(Map.of("message", e.getMessage())); 
+        }
     }
 }

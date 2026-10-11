@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../services/api/api_client.dart';
+import 'dart:html' as html;
+import 'dart:ui_web' as ui_web;
 
 class DigitalTwinScreen extends StatefulWidget {
   const DigitalTwinScreen({super.key});
@@ -10,6 +12,23 @@ class DigitalTwinScreen extends StatefulWidget {
 }
 
 class _DigitalTwinScreenState extends State<DigitalTwinScreen> {
+  bool _iframeRegistered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // ignore: undefined_prefixed_name
+    ui_web.platformViewRegistry.registerViewFactory(
+      'digital-twin-3d',
+      (int viewId) => html.IFrameElement()
+        ..src = '3d_assets/index.html'
+        ..style.border = 'none'
+        ..style.width = '100%'
+        ..style.height = '100%'
+    );
+    _iframeRegistered = true;
+  }
+
   // Illustrative spatial layout. Details are retrieved from the digital-twin API.
   final List<Map<String, dynamic>> _mockAreas = [
     {
@@ -140,60 +159,9 @@ class _DigitalTwinScreenState extends State<DigitalTwinScreen> {
                   flex: 3,
                   child: Card(
                     color: AppTheme.secondaryNavy,
-                    clipBehavior: Clip.antiAlias,
-                    child: Stack(
-                      children: [
-                        // Background grid
-                        Positioned.fill(
-                          child: CustomPaint(
-                            painter: GridPainter(),
-                          ),
-                        ),
-                        // Render areas
-                        ..._mockAreas.map((area) {
-                          final isSelected = _selectedAreaName == area['name'];
-                          return Positioned(
-                            left: area['x'],
-                            top: area['y'],
-                            width: area['w'],
-                            height: area['h'],
-                            child: GestureDetector(
-                              onTap: () => _fetchAreaDetails(area['name']),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? AppTheme.accentCyan
-                                          .withValues(alpha: 0.4)
-                                      : AppTheme.accentCyan
-                                          .withValues(alpha: 0.1),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? AppTheme.accentCyan
-                                        : AppTheme.accentCyan
-                                            .withValues(alpha: 0.5),
-                                    width: isSelected ? 2 : 1,
-                                  ),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    area['name'],
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: isSelected
-                                          ? Colors.white
-                                          : AppTheme.accentCyan,
-                                      fontWeight: isSelected
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
+                    child: _iframeRegistered 
+                        ? const HtmlElementView(viewType: 'digital-twin-3d')
+                        : const Center(child: CircularProgressIndicator()),
                   ),
                 ),
                 const SizedBox(width: AppTheme.spacingMd),

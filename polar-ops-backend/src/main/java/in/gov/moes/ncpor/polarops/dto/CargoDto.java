@@ -8,19 +8,42 @@ import java.time.LocalDateTime;
 public class CargoDto {
     private Long id;
     private String cargoId;
+    private String name;
+    private String description;
+    
     private Long expeditionId;
+    private Long teamId;
     private String ownerOrganization;
-    private String projectName;
+    
+    private String origin;
     private String destination;
-    private Integer packageNumber;
-    private Integer totalPackages;
+    
+    private Integer quantity;
     private Double weight;
     private String dimensions;
     private String category;
-    private Boolean hazardousStatus;
-    private String storageConditions;
+    
+    private String priority;
+    
     private String currentStatus;
+    
+    private Boolean hazardousStatus;
+    private String handlingRequirements;
+    private String specialInstructions;
+    
     private LocalDate expectedDeliveryDate;
+    private LocalDate actualDeliveryDate;
+    
+    private String currentLocation;
+    private Double latitude;
+    private Double longitude;
+    private LocalDateTime lastLocationUpdate;
+    
+    private String trackerId;
+    private String qrCode;
+    
     private Integer riskScore;
+    private String createdBy;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

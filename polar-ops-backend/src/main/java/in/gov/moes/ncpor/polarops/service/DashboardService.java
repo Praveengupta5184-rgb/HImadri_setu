@@ -14,6 +14,7 @@ import java.util.List;
 public class DashboardService {
 
     private final ExpeditionRepository expeditionRepository;
+    private final MissionRepository missionRepository;
     private final CargoRepository cargoRepository;
     private final InventoryRepository inventoryRepository;
     private final PersonnelRepository personnelRepository;
@@ -21,14 +22,16 @@ public class DashboardService {
     private final EmergencyIncidentRepository emergencyIncidentRepository;
 
     public DashboardData getDashboardData() {
-        long activeExpeditions = expeditionRepository.countByStatus("ACTIVE");
-        long cargoInTransit = cargoRepository.countByCurrentStatus("IN_TRANSIT");
+        long activeExpeditions = missionRepository.countByStatus("ACTIVE");
+        long cargoInTransit = cargoRepository.countByCurrentStatus(in.gov.moes.ncpor.polarops.model.cargo.CargoStatus.IN_TRANSIT);
         long inventoryCritical = inventoryRepository.findAll().stream()
                 .filter(i -> "CRITICAL".equals(i.getDerivedStatus()) || "OUT_OF_STOCK".equals(i.getDerivedStatus()))
                 .count();
-        long personnelDeployed = personnelRepository.countByMovementStatus("FIELD_DEPLOYED");
+        long personnelDeployed = personnelRepository.countByMovementStatus("DEPLOYED");
         long criticalAssets = assetRepository.countByStatus("CRITICAL");
-        long activeEmergencies = emergencyIncidentRepository.countByStatus("ACTIVE");
+        long activeEmergencies = emergencyIncidentRepository.findAll().stream()
+                .filter(i -> !("RESOLVED".equals(i.getStatus()) || "CLOSED".equals(i.getStatus()) || "CANCELLED".equals(i.getStatus())))
+                .count();
 
         MissionReadiness readiness = calculateReadiness();
 
@@ -48,7 +51,7 @@ public class DashboardService {
         
         // Derived readiness calculation based on live DB metrics
         
-        long cargoIssues = cargoRepository.countByCurrentStatus("DELAYED") + cargoRepository.countByCurrentStatus("IN_TRANSIT");
+        long cargoIssues = cargoRepository.countByCurrentStatus(in.gov.moes.ncpor.polarops.model.cargo.CargoStatus.DELAYED) + cargoRepository.countByCurrentStatus(in.gov.moes.ncpor.polarops.model.cargo.CargoStatus.IN_TRANSIT);
         int cargoScore = cargoIssues == 0 ? 100 : Math.max(50, 100 - (int)(cargoIssues * 5));
         if (cargoScore < 90) reasons.add("Some cargo is currently delayed or in transit.");
         
@@ -65,7 +68,9 @@ public class DashboardService {
         int assetScore = criticalAss == 0 ? 100 : Math.max(20, 100 - (int)(criticalAss * 15));
         if (assetScore < 80) reasons.add("Critical assets require maintenance.");
         
-        long activeEmergencies = emergencyIncidentRepository.count();
+        long activeEmergencies = emergencyIncidentRepository.findAll().stream()
+                .filter(i -> !("RESOLVED".equals(i.getStatus()) || "CLOSED".equals(i.getStatus()) || "CANCELLED".equals(i.getStatus())))
+                .count();
         int emergencyScore = activeEmergencies > 0 ? 50 : 100;
         if (emergencyScore < 80) reasons.add("Active emergency ongoing.");
         

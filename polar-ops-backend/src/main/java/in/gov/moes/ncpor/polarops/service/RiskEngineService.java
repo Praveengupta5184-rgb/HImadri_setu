@@ -50,7 +50,7 @@ public class RiskEngineService {
         }
 
         // 4. Status
-        if ("DELAYED".equalsIgnoreCase(cargoPackage.getCurrentStatus())) {
+        if (cargoPackage.getCurrentStatus() != null && "DELAYED".equalsIgnoreCase(cargoPackage.getCurrentStatus().name())) {
             riskScore += 25;
             factors.put("Delayed Status", 25);
         }

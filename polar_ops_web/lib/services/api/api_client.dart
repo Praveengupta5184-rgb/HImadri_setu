@@ -11,7 +11,18 @@ class ApiResponse<T> {
 }
 
 class ApiClient {
-  static const String baseUrl = 'https://himadri-setu.onrender.com/api/v1';
+  static String get baseUrl {
+    const envUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '');
+    if (envUrl.isNotEmpty) return envUrl;
+
+    try {
+      final baseUri = Uri.base;
+      if (baseUri.scheme == 'http' || baseUri.scheme == 'https') {
+        return '${baseUri.scheme}://${baseUri.host}:8080/api/v1';
+      }
+    } catch (_) {}
+    return 'http://localhost:8080/api/v1';
+  }
   static String? _authToken;
 
   static void setAuthToken(String token) {

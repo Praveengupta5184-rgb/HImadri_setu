@@ -34,6 +34,9 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
+    _tabController.addListener(() {
+      setState(() {});
+    });
     _fetchAll();
   }
 
@@ -74,6 +77,19 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen>
     });
   }
 
+  Future<void> _updateMissionStatus(String newStatus) async {
+    setState(() => _isLoading = true);
+    final response = await MissionService.updateMissionStatus(widget.missionCode, newStatus);
+    if (!mounted) return;
+    if (response.success) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Mission status updated to $newStatus')));
+      _fetchAll();
+    } else {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update status: ${response.error}'), backgroundColor: AppTheme.statusCritical));
+    }
+  }
+
   Widget _buildOverview() {
     final m = _dashboard?['mission'] as Map<String, dynamic>?;
     if (m == null) return const SizedBox.shrink();
@@ -97,7 +113,24 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen>
                           style: const TextStyle(color: AppTheme.accentCyan,
                               fontSize: 22, fontWeight: FontWeight.bold,
                               letterSpacing: 1.5)),
-                      _statusBadge(m['status']),
+                      Row(
+                        children: [
+                          _statusBadge(m['status']),
+                          if (_isOfficer && m['status'] == 'PLANNED') ...[
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              onPressed: () => _updateMissionStatus('ACTIVE'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.statusHealthy,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                minimumSize: const Size(0, 0),
+                              ),
+                              child: const Text('ACTIVATE', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        ],
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -233,9 +266,31 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen>
             title: Text(t['teamCode'] ?? '-',
                 style: const TextStyle(color: AppTheme.accentCyan,
                     fontWeight: FontWeight.bold)),
-            subtitle: Text(t['teamName'] ?? '-',
+            subtitle: Text(
+                '${t['teamName'] ?? '-'}' + 
+                (t['teamLeader'] != null ? ' • Lead: ${t['teamLeader']['name']}' : ''),
                 style: const TextStyle(color: AppTheme.textMain)),
-            trailing: _statusBadge(t['status']),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _statusBadge(t['status']),
+                if (_isOfficer) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.person_add, size: 20),
+                    tooltip: 'Add Personnel',
+                    onPressed: () => _showAddPersonnelDialog(t['id']),
+                    color: AppTheme.accentCyan,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.star_outline, size: 20),
+                    tooltip: 'Assign Team Leader',
+                    onPressed: () => _showAssignLeaderDialog(t['id']),
+                    color: AppTheme.statusWarning,
+                  ),
+                ],
+              ],
+            ),
             children: [
               if (teamMembers.isEmpty)
                 const Padding(
@@ -530,6 +585,147 @@ class _MissionDetailsScreenState extends State<MissionDetailsScreen>
                     ),
                   ],
                 ),
+      floatingActionButton: (_isOfficer && _tabController.index == 1)
+          ? FloatingActionButton(
+              onPressed: () => _showCreateTeamDialog(),
+              backgroundColor: AppTheme.accentCyan,
+              child: const Icon(Icons.add, color: AppTheme.primaryNavy),
+            )
+          : null,
+    );
+  }
+
+  void _showCreateTeamDialog() {
+    final nameController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.secondaryNavy,
+        title: const Text('Create New Team', style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: nameController,
+          decoration: const InputDecoration(
+            labelText: 'Team Name',
+            labelStyle: TextStyle(color: AppTheme.textMuted),
+          ),
+          style: const TextStyle(color: Colors.white),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (nameController.text.trim().isEmpty) return;
+              final data = {
+                'teamName': nameController.text.trim(),
+              };
+              Navigator.pop(ctx);
+              final res = await MissionService.createTeam(widget.missionCode, data);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(res.success ? 'Team Created' : (res.error ?? 'Error creating team')),
+                  backgroundColor: res.success ? AppTheme.statusHealthy : AppTheme.statusCritical,
+                ));
+                if (res.success) _fetchAll();
+              }
+            },
+            child: const Text('CREATE', style: TextStyle(color: AppTheme.accentCyan)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddPersonnelDialog(int teamId) {
+    final personnelIdController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.secondaryNavy,
+        title: const Text('Add Personnel to Team', style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: personnelIdController,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Personnel ID',
+            hintText: 'Enter valid Personnel ID (e.g. 1, 2)',
+            labelStyle: TextStyle(color: AppTheme.textMuted),
+          ),
+          style: const TextStyle(color: Colors.white),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final pId = int.tryParse(personnelIdController.text.trim());
+              if (pId == null) return;
+              
+              Navigator.pop(ctx);
+              final res = await MissionService.addPersonnelToTeam(widget.missionCode, teamId, pId);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(res.success ? 'Personnel Added' : (res.error ?? 'Error adding personnel')),
+                  backgroundColor: res.success ? AppTheme.statusHealthy : AppTheme.statusCritical,
+                ));
+                if (res.success) _fetchAll();
+              }
+            },
+            child: const Text('ADD', style: TextStyle(color: AppTheme.accentCyan)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAssignLeaderDialog(int teamId) {
+    final personnelIdController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.secondaryNavy,
+        title: const Text('Assign Team Leader', style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: personnelIdController,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Personnel ID',
+            hintText: 'Enter valid Personnel ID (e.g. 1, 2)',
+            labelStyle: TextStyle(color: AppTheme.textMuted),
+          ),
+          style: const TextStyle(color: Colors.white),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final pId = int.tryParse(personnelIdController.text.trim());
+              if (pId == null) return;
+              
+              Navigator.pop(ctx);
+              final res = await MissionService.assignTeamLeader(widget.missionCode, teamId, pId);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(res.success ? 'Team Leader Assigned' : (res.error ?? 'Error assigning leader')),
+                  backgroundColor: res.success ? AppTheme.statusHealthy : AppTheme.statusCritical,
+                ));
+                if (res.success) _fetchAll();
+              }
+            },
+            child: const Text('ASSIGN', style: TextStyle(color: AppTheme.accentCyan)),
+          ),
+        ],
+      ),
     );
   }
 }
