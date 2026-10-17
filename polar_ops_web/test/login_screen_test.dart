@@ -41,7 +41,7 @@ void main() {
     expect(find.text('JUDGE DEMO ACCESS'), findsOneWidget);
     expect(find.text(JudgeDemoSection.demoEmail), findsOneWidget);
 
-    final fillBtn = find.text('Fill Demo Credentials');
+    final fillBtn = find.text('1-Click Fill Demo Credentials');
     expect(fillBtn, findsOneWidget);
 
     await tester.tap(fillBtn);

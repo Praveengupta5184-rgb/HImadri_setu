@@ -160,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             SizedBox(height: 12),
             Text(
-              'Please contact your Station Commander, Mission Officer, or the NCPOR System Administrator (admin@polarops.gov.in) with your personnel credentials to reset your access key.',
+              'Please contact your Station Commander, Mission Officer, or the NCPOR IT Security Helpdesk with your personnel credentials to reset your access key.',
               style: TextStyle(
                 color: Color(0xFF94A3B8),
                 fontSize: 12,
